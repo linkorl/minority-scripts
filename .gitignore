@@ -1,0 +1,12 @@
+# IDE
+.idea
+.vscode
+
+# General
+node_modules
+mix_manifest.json
+**/**/.DS_Store
+
+# Logs
+npm-debug.log
+yarn-error.log
