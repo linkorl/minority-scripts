@@ -10,3 +10,6 @@ mix_manifest.json
 # Logs
 npm-debug.log
 yarn-error.log
+
+# Script to autodeploy
+deploy.py
