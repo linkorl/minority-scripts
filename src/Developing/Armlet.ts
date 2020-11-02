@@ -9,6 +9,7 @@ let myLocalHero: Hero = EntitySystem.GetLocalHero();
 let gameStart: boolean = true;
 let isActiveScript: boolean = false;
 
+let attackMyLocalHero = []
 let timeToggleArmlet = 0;
 let hpToActive = 350;
 let whoDisableArmlet = 0; // 0 - Player, 1 - Script
@@ -60,41 +61,32 @@ ArmletAbuse.OnUpdate = () => {
             let timeNow = GameRules.GetGameTime();
             let hpMyLocalHeroNow = myLocalHero.GetHealth();
             let underModifer: boolean = Boolean(myLocalHero.GetModifier(modiferName));
-            console.log(myLocalHero.GetRecentDamage(), lastRecentDamage)
-            let myLocalHeroRecentDamageNow = myLocalHero.GetRecentDamage();
-            if (hpMyLocalHeroNow <= hpToActive) {
-                if (myLocalHeroRecentDamageNow > lastRecentDamage && underModifer) {
-                    // console.log("Toggle off")
-                    armletItem.Toggle()
-                    whoDisableArmlet = 1
 
-                } else if (myLocalHeroRecentDamageNow == myLocalHeroRecentDamageNow && whoDisableArmlet) {
-                    if (!underModifer && hpMyLocalHeroNow <= hpToActive && timeNow - timeToggleArmlet) {
-                        armletItem.Toggle()
-                        // console.log("Toggle On")
-                        timeToggleArmlet = timeNow;
-                    } else if (underModifer && hpMyLocalHeroNow <= hpToActive && timeNow - timeToggleArmlet >= timeToFullStrenght && myLocalHeroRecentDamageNow === 0.0) {
-                        armletItem.Toggle()
-                        // console.log("Toggle off 2")
-                        whoDisableArmlet = 1
-                    }
+            if (hpMyLocalHeroNow <= hpToActive) {
+
+                if (attackMyLocalHero.length === 0 && underModifer && timeNow - timeToggleArmlet >= timeToFullStrenght) {
+                    armletItem.Toggle()
+                    whoDisableArmlet = 1;
+                }
+                else if(!underModifer && whoDisableArmlet) {
+                    armletItem.Toggle();
+                    timeToggleArmlet = timeNow;
                 }
             }
-            lastRecentDamage = myLocalHeroRecentDamageNow
         }
     }
 }
 
 ArmletAbuse.OnPrepareUnitOrders = (order) => {
-    // track disable armlet by player
-    if (order.ability && order.npc && order.ability.GetName() === itemArmlet && order.npc === myLocalHero && order.ability.GetToggleState()) {
-        whoDisableArmlet = 0
-    }
-
-
     if (gameStart && myLocalHero && isActiveScript) {
+        // track disable armlet by player
+        if (order.ability && order.npc && order.ability.GetName() === itemArmlet && order.npc === myLocalHero && order.ability.GetToggleState()) {
+            whoDisableArmlet = 0
+        }
+
         let armlet: Item = myLocalHero.GetItem(itemArmlet, true)
         let underModifer: boolean = Boolean(myLocalHero.GetModifier(modiferName));
+
         // Auto Toggle Armlet after spells
         if (order.ability && arrayStateSpell[arrayIllusionCreatingSpellNames.indexOf(order.ability.GetName())]) {
             if (!underModifer) {
@@ -102,6 +94,7 @@ ArmletAbuse.OnPrepareUnitOrders = (order) => {
                 return
             }
         }
+
         if (!underModifer && order.order === Enum.UnitOrder.DOTA_UNIT_ORDER_ATTACK_TARGET && Engine.OnceAt(0.1)) {
 
             if (autoToggleValue === 0) {
@@ -114,6 +107,42 @@ ArmletAbuse.OnPrepareUnitOrders = (order) => {
         }
     }
 
+}
+
+ArmletAbuse.OnUnitAnimation = (animation) => {
+    let unit = animation.unit
+
+    if (animation.sequence && myLocalHero && isActiveScript && gameStart && !unit.IsSameTeam(myLocalHero)) {
+        let target = unit.FindFacingNPC((unit.GetTeamNum() === 1 ? 2: 1)); // Нужно сделать свою логику нахождения таргета
+
+        if (target == myLocalHero && animation.sequence === 22) {
+            console.log("Add " + unit.GetEntityName())
+            attackMyLocalHero.push(unit)
+            console.log(attackMyLocalHero.length)
+        }
+        else if(animation.sequence === 23) {
+            let index = attackMyLocalHero.indexOf(unit);
+            if (index !== -1) {
+                console.log("Remove " + attackMyLocalHero[index].GetEntityName())
+                attackMyLocalHero = attackMyLocalHero.filter(item => item !== unit)
+
+                console.log(attackMyLocalHero.length)
+            }
+        }
+    }
+};
+
+ArmletAbuse.OnUnitAnimationEnd = (animation) => {
+    let unit = animation.unit
+    if (unit) {
+        let index = attackMyLocalHero.indexOf(unit);
+        if (index !== -1) {
+            console.log("Remove " + attackMyLocalHero[index].GetEntityName())
+            attackMyLocalHero = attackMyLocalHero.filter(item => item !== unit)
+            
+            console.log(attackMyLocalHero.length)
+        }
+    }
 }
 
 
