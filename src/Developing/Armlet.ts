@@ -1,5 +1,3 @@
-import {isReferencedFile} from "ts-loader/dist/instances";
-
 let ArmletAbuse: ScriptDescription = {};
 
 const whereScriptMenuArray = ['Linkor'];
@@ -63,26 +61,26 @@ ArmletAbuse.OnUpdate = () => {
             let hpMyLocalHeroNow = myLocalHero.GetHealth();
             let underModifer: boolean = Boolean(myLocalHero.GetModifier(modiferName));
             console.log(myLocalHero.GetRecentDamage(), lastRecentDamage)
+            let myLocalHeroRecentDamageNow = myLocalHero.GetRecentDamage();
             if (hpMyLocalHeroNow <= hpToActive) {
-                let myLocalHeroRecentDamageNow = myLocalHero.GetRecentDamage();
-                if (myLocalHero.GetRecentDamage() > lastRecentDamage && underModifer) {
+                if (myLocalHeroRecentDamageNow > lastRecentDamage && underModifer) {
                     // console.log("Toggle off")
                     armletItem.Toggle()
                     whoDisableArmlet = 1
 
-                } else if (myLocalHero.GetRecentDamage() == myLocalHeroRecentDamageNow && whoDisableArmlet) {
+                } else if (myLocalHeroRecentDamageNow == myLocalHeroRecentDamageNow && whoDisableArmlet) {
                     if (!underModifer && hpMyLocalHeroNow <= hpToActive && timeNow - timeToggleArmlet) {
                         armletItem.Toggle()
                         // console.log("Toggle On")
                         timeToggleArmlet = timeNow;
-                    } else if (underModifer && hpMyLocalHeroNow <= hpToActive && timeNow - timeToggleArmlet >= timeToFullStrenght && myLocalHero.GetRecentDamage() === 0.0) {
+                    } else if (underModifer && hpMyLocalHeroNow <= hpToActive && timeNow - timeToggleArmlet >= timeToFullStrenght && myLocalHeroRecentDamageNow === 0.0) {
                         armletItem.Toggle()
                         // console.log("Toggle off 2")
                         whoDisableArmlet = 1
                     }
                 }
             }
-            lastRecentDamage = myLocalHero.GetRecentDamage()
+            lastRecentDamage = myLocalHeroRecentDamageNow
         }
     }
 }
